@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Memecoin Intel | Insider Intelligence Platform</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0b0f1a;--surface:#111827;--surface2:#1a2332;--border:#1e293b;--text:#e2e8f0;--muted:#64748b;--green:#10b981;--red:#ef4444;--blue:#3b82f6;--orange:#f59e0b;--purple:#8b5cf6;--cyan:#06b6d4;--pink:#ec4899;--accent:#f59e0b}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow-x:hidden}
+
+/* Header */
+.header{background:linear-gradient(135deg,#111827 0%,#1a1040 100%);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header .logo{display:flex;align-items:center;gap:12px}
+.header .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--orange),var(--pink));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.header .logo-text{font-size:20px;font-weight:800;background:linear-gradient(135deg,var(--orange),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header .logo-sub{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.header-right{display:flex;align-items:center;gap:16px}
+.live-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{opacity:.7;box-shadow:0 0 0 8px rgba(16,185,129,0)}}
+.stat-pill{background:var(--surface2);padding:6px 14px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:6px}
+
+/* Alert Banner */
+.alert-banner{background:linear-gradient(90deg,rgba(239,68,68,.15),rgba(249,115,22,.15));border-bottom:1px solid rgba(239,68,68,.3);padding:10px 24px;display:flex;align-items:center;gap:12px;font-size:13px;overflow:hidden}
+.alert-banner .alert-icon{color:var(--red);font-weight:bold;flex-shrink:0}
+.alert-scroll{display:flex;gap:40px;animation:alertScroll 20s linear infinite;white-space:nowrap}
+@keyframes alertScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.alert-item{display:flex;align-items:center;gap:8px}
+.alert-item .time{color:var(--muted);font-size:11px}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px 24px}
+.grid-full{grid-column:span 3}
+.grid-2{grid-column:span 2}
+@media(max-width:1200px){.grid{grid-template-columns:1fr 1fr}.grid-full,.grid-2{grid-column:span 2}}
+@media(max-width:768px){.grid{grid-template-columns:1fr}.grid-full,.grid-2{grid-column:span 1}}
+
+/* Card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.card-header{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.card-header h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text)}
+.card-header .badge{font-size:10px;padding:3px 10px;border-radius:10px;font-weight:600}
+.badge-live{background:rgba(16,185,129,.15);color:var(--green)}
+.badge-ai{background:rgba(139,92,246,.15);color:var(--purple)}
+.badge-alert{background:rgba(239,68,68,.15);color:var(--red)}
+.card-body{padding:18px}
+
+/* Whale Table */
+.whale-table{width:100%;border-collapse:collapse;font-size:12px}
+.whale-table th{text-align:left;padding:8px 10px;color:var(--muted);font-weight:500;text-transform:uppercase;font-size:10px;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.whale-table td{padding:10px;border-bottom:1px solid var(--border)}
+.whale-table tr:hover{background:var(--surface2)}
+.wallet-addr{font-family:'Courier New',monospace;color:var(--cyan);font-size:11px}
+.whale-tag{font-size:9px;padding:2px 8px;border-radius:4px;font-weight:600;margin-left:6px}
+.tag-whale{background:rgba(59,130,246,.15);color:var(--blue)}
+.tag-insider{background:rgba(236,72,153,.15);color:var(--pink)}
+.tag-sniper{background:rgba(249,115,22,.15);color:var(--orange)}
+.tag-deployer{background:rgba(139,92,246,.15);color:var(--purple)}
+.pnl-pos{color:var(--green);font-weight:600}
+.pnl-neg{color:var(--red);font-weight:600}
+
+/* Token Cards */
+.token-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.token-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;transition:all .2s}
+.token-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.token-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.token-name{font-weight:700;font-size:15px}
+.token-chain{font-size:10px;color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:4px}
+.token-stat{display:flex;justify-content:space-between;margin:4px 0;font-size:12px}
+.token-stat .label{color:var(--muted)}
+.token-bar{height:4px;background:var(--bg);border-radius:2px;margin-top:8px;overflow:hidden}
+.token-bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
+
+/* Network Graph (Canvas) */
+.network-canvas{width:100%;height:350px;display:block;border-radius:8px;background:var(--bg)}
+
+/* Flow Visualization */
+.flow-container{position:relative;height:300px;overflow:hidden}
+.flow-node{position:absolute;background:var(--surface2);border:2px solid var(--border);border-radius:10px;padding:10px 14px;font-size:11px;text-align:center;transition:all .3s}
+.flow-node:hover{border-color:var(--accent);z-index:10}
+.flow-node .node-label{font-weight:700;margin-bottom:4px}
+.flow-node .node-val{color:var(--accent);font-size:13px;font-weight:600}
+.flow-line{position:absolute;pointer-events:none}
+
+/* Metrics Row */
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:0}
+.metric-box{background:var(--surface2);border-radius:10px;padding:16px;text-align:center}
+.metric-box .metric-val{font-size:28px;font-weight:800;background:linear-gradient(135deg,var(--text),var(--muted));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.metric-box .metric-label{font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.metric-box .metric-change{font-size:12px;margin-top:4px}
+
+/* Alert Feed */
+.alert-feed{max-height:360px;overflow-y:auto}
+.alert-feed::-webkit-scrollbar{width:4px}
+.alert-feed::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.alert-entry{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.alert-entry:last-child{border:none}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.alert-entry .alert-text{font-size:12px;line-height:1.5}
+.alert-entry .alert-time{font-size:10px;color:var(--muted);margin-top:2px}
+.alert-entry .alert-token{color:var(--accent);font-weight:600}
+
+/* Chart */
+.chart-wrap{position:relative;height:250px}
+
+/* Footer */
+.footer{text-align:center;padding:20px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:20px}
+.footer a{color:var(--accent);text-decoration:none}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card{animation:fadeUp .5s ease both}
+.card:nth-child(2){animation-delay:.1s}
+.card:nth-child(3){animation-delay:.15s}
+.card:nth-child(4){animation-delay:.2s}
+.card:nth-child(5){animation-delay:.25s}
+.card:nth-child(6){animation-delay:.3s}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div>
+    <div class="logo">
+      <div class="logo-icon">&#129302;</div>
+      <div>
+        <div class="logo-text">Memecoin Intel</div>
+        <div class="logo-sub">Insider Intelligence Platform</div>
+      </div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="stat-pill"><span class="live-dot"></span> Tracking 2,847 Wallets</div>
+    <div class="stat-pill">Chain: Ethereum + Solana + Base</div>
+    <div class="stat-pill" id="headerClock">--:--:--</div>
+  </div>
+</div>
+
+<!-- Alert Banner -->
+<div class="alert-banner">
+  <span class="alert-icon">[!] ALERTS</span>
+  <div style="overflow:hidden;flex:1">
+    <div class="alert-scroll" id="alertScroll"></div>
+  </div>
+</div>
+
+<!-- Metrics -->
+<div style="padding:20px 24px 0">
+  <div class="metrics-row" id="metricsRow"></div>
+</div>
+
+<!-- Main Grid -->
+<div class="grid">
+
+  <!-- Whale Tracker -->
+  <div class="card grid-2">
+    <div class="card-header">
+      <h3>Whale Wallet Tracker</h3>
+      <span class="badge badge-live">LIVE TRACKING</span>
+    </div>
+    <div class="card-body">
+      <table class="whale-table">
+        <thead><tr><th>Wallet</th><th>Type</th><th>Last Action</th><th>Token</th><th>Amount</th><th>PnL</th><th>Time</th></tr></thead>
+        <tbody id="whaleBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Alert Feed -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Live Alert Feed</h3>
+      <span class="badge badge-alert">12 NEW</span>
+    </div>
+    <div class="card-body">
+      <div class="alert-feed" id="alertFeed"></div>
+    </div>
+  </div>
+
+  <!-- Token Flow -->
+  <div class="card grid-2">
+    <div class="card-header">
+      <h3>Insider Token Flow - Last 24h</h3>
+      <span class="badge badge-ai">AI DETECTED</span>
+    </div>
+    <div class="card-body">
+      <div class="chart-wrap"><canvas id="flowChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Network Graph -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Wallet Network Graph</h3>
+      <span class="badge badge-ai">CLUSTER ANALYSIS</span>
+    </div>
+    <div class="card-body">
+      <canvas class="network-canvas" id="networkCanvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Trending Tokens -->
+  <div class="card grid-full">
+    <div class="card-header">
+      <h3>Trending Insider Tokens</h3>
+      <span style="font-size:11px;color:var(--muted)">Tokens with highest insider wallet activity in the last 6h</span>
+    </div>
+    <div class="card-body">
+      <div class="token-grid" id="tokenGrid"></div>
+    </div>
+  </div>
+
+  <!-- Insider PnL Chart -->
+  <div class="card grid-2">
+    <div class="card-header">
+      <h3>Insider Wallet PnL Distribution</h3>
+      <span class="badge badge-live">REAL-TIME</span>
+    </div>
+    <div class="card-body">
+      <div class="chart-wrap"><canvas id="pnlChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Detection Stats -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Detection Engine Stats</h3>
+      <span class="badge badge-ai">ML MODEL v2.4</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span>Insider Detection Accuracy</span><span style="color:var(--green)">94.2%</span></div><div class="token-bar"><div class="token-bar-fill" style="width:94.2%;background:var(--green)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span>Rug Pull Prediction</span><span style="color:var(--orange)">87.6%</span></div><div class="token-bar"><div class="token-bar-fill" style="width:87.6%;background:var(--orange)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span>Whale Cluster ID</span><span style="color:var(--blue)">91.3%</span></div><div class="token-bar"><div class="token-bar-fill" style="width:91.3%;background:var(--blue)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span>Sybil Detection</span><span style="color:var(--purple)">89.1%</span></div><div class="token-bar"><div class="token-bar-fill" style="width:89.1%;background:var(--purple)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span>Token Score Reliability</span><span style="color:var(--cyan)">92.7%</span></div><div class="token-bar"><div class="token-bar-fill" style="width:92.7%;background:var(--cyan)"></div></div></div>
+        <div style="margin-top:8px;padding:12px;background:var(--bg);border-radius:8px;font-size:11px">
+          <div style="color:var(--muted);margin-bottom:6px">MODEL PERFORMANCE (Last 30 days)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>Tokens Analyzed: <span style="color:var(--text);font-weight:600">14,892</span></div>
+            <div>Rugs Predicted: <span style="color:var(--red);font-weight:600">342</span></div>
+            <div>Insiders Found: <span style="color:var(--pink);font-weight:600">1,247</span></div>
+            <div>Alerts Sent: <span style="color:var(--orange);font-weight:600">3,891</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Built with Python, Web3.py, NetworkX, scikit-learn | Tracking Ethereum, Solana, Base chains | <a href="https://github.com/Hamz04/memecoin-intel">View Source on GitHub</a>
+</div>
+
+<script>
+// ============ DATA ============
+const walletPrefixes = ['0x7a3b','0x9f2c','0x4d1e','0x8b5a','0x2c9f','0x6e3d','0x1f8a','0xb4c7','0x5d2e','0xa3f1','0x3c8b','0xd7e4','0x0f6a','0xc1d9','0x82b5'];
+const walletSuffixes = ['F3d2','A1b4','E7c8','D5f9','B2a6','C9e1','8d4F','6aB3','4cD7','2eF5'];
+const tokenNames = ['$PEPE','$WIF','$BONK','$DOGE','$SHIB','$FLOKI','$BRETT','$MOG','$TURBO','$NEIRO','$POPCAT','$MYRO','$BOME','$SLERF','$MICHI'];
+const chains = ['ETH','SOL','BASE','ARB'];
+const tags = [{name:'WHALE',cls:'tag-whale'},{name:'INSIDER',cls:'tag-insider'},{name:'SNIPER',cls:'tag-sniper'},{name:'DEPLOYER',cls:'tag-deployer'}];
+const actions = ['BUY','SELL','TRANSFER','ADD LP','REMOVE LP'];
+
+function randAddr(){return walletPrefixes[Math.floor(Math.random()*walletPrefixes.length)]+'...'+walletSuffixes[Math.floor(Math.random()*walletSuffixes.length)];}
+function randToken(){return tokenNames[Math.floor(Math.random()*tokenNames.length)];}
+function randChain(){return chains[Math.floor(Math.random()*chains.length)];}
+function randTag(){return tags[Math.floor(Math.random()*tags.length)];}
+function randAmt(){const v=Math.random();if(v<0.3)return(Math.random()*50+5).toFixed(1)+'K';if(v<0.7)return(Math.random()*500+50).toFixed(0)+'K';return(Math.random()*5+1).toFixed(2)+'M';}
+function randTime(){const mins=[1,2,3,5,8,12,15,22,30,45];return mins[Math.floor(Math.random()*mins.length)]+'m ago';}
+
+// ============ METRICS ============
+function initMetrics(){
+  const metrics = [
+    {val:'$847M',label:'Insider Volume (24h)',change:'+23.4%',up:true},
+    {val:'2,847',label:'Wallets Tracked',change:'+156 today',up:true},
+    {val:'342',label:'Rug Pulls Detected (30d)',change:'-12% vs prior',up:false},
+    {val:'94.2%',label:'Detection Accuracy',change:'+1.8% this week',up:true}
+  ];
+  document.getElementById('metricsRow').innerHTML = metrics.map(m=>
+    `<div class="metric-box"><div class="metric-val">${m.val}</div><div class="metric-label">${m.label}</div><div class="metric-change" style="color:${m.up?'var(--green)':'var(--red)'}">${m.change}</div></div>`
+  ).join('');
+}
+
+// ============ WHALE TABLE ============
+function initWhaleTable(){
+  const rows=[];
+  for(let i=0;i<12;i++){
+    const tag=randTag();
+    const action=actions[Math.floor(Math.random()*actions.length)];
+    const isSell=action==='SELL'||action==='REMOVE LP';
+    const pnl=Math.random()>0.35?(Math.random()*500+10).toFixed(0):-(Math.random()*80+5).toFixed(0);
+    rows.push(`<tr>
+      <td><span class="wallet-addr">${randAddr()}</span></td>
+      <td><span class="whale-tag ${tag.cls}">${tag.name}</span></td>
+      <td style="color:${isSell?'var(--red)':'var(--green)'}">${action}</td>
+      <td style="color:var(--accent);font-weight:600">${randToken()}</td>
+      <td>$${randAmt()}</td>
+      <td class="${pnl>=0?'pnl-pos':'pnl-neg'}">${pnl>=0?'+':''}${pnl}%</td>
+      <td style="color:var(--muted)">${randTime()}</td>
+    </tr>`);
+  }
+  document.getElementById('whaleBody').innerHTML=rows.join('');
+}
+
+// ============ ALERT FEED ============
+function initAlertFeed(){
+  const alertTypes=[
+    {dot:'var(--red)',text:'Insider wallet <span class="alert-token">{TOKEN}</span> accumulated $420K in 3 minutes -- potential pre-pump activity'},
+    {dot:'var(--orange)',text:'Deployer of <span class="alert-token">{TOKEN}</span> removed 80% of LP -- RUG ALERT'},
+    {dot:'var(--pink)',text:'Cluster of 15 connected wallets all buying <span class="alert-token">{TOKEN}</span> simultaneously'},
+    {dot:'var(--blue)',text:'Whale {ADDR} moved $2.1M of <span class="alert-token">{TOKEN}</span> to Binance deposit address'},
+    {dot:'var(--purple)',text:'New token <span class="alert-token">{TOKEN}</span> deployed by known insider wallet {ADDR}'},
+    {dot:'var(--green)',text:'Smart money wallet {ADDR} entered <span class="alert-token">{TOKEN}</span> -- 89% historical win rate'},
+    {dot:'var(--cyan)',text:'Sybil attack detected: 50+ wallets funded from same source buying <span class="alert-token">{TOKEN}</span>'},
+    {dot:'var(--red)',text:'<span class="alert-token">{TOKEN}</span> honeypot detected -- sell function disabled in contract'},
+  ];
+  const entries=[];
+  for(let i=0;i<15;i++){
+    const a=alertTypes[Math.floor(Math.random()*alertTypes.length)];
+    const text=a.text.replace('{TOKEN}',randToken()).replace('{ADDR}',randAddr());
+    entries.push(`<div class="alert-entry"><div class="alert-dot" style="background:${a.dot}"></div><div><div class="alert-text">${text}</div><div class="alert-time">${randTime()}</div></div></div>`);
+  }
+  document.getElementById('alertFeed').innerHTML=entries.join('');
+}
+
+// ============ SCROLLING ALERTS ============
+function initAlertBanner(){
+  const alerts=[
+    'WHALE ALERT: 0x7a3b...F3d2 bought $1.2M of $PEPE',
+    'RUG DETECTED: $SLERF deployer removed all LP',
+    'INSIDER: 0x9f2c...A1b4 pre-bought $BRETT 4h before listing',
+    'CLUSTER: 23 wallets linked to $MOG pump-and-dump',
+    'SMART MONEY: 0x4d1e...E7c8 entered $WIF (92% win rate)',
+    'SNIPER: 0x8b5a...D5f9 sniped $NEIRO at block 0 for 400x',
+  ];
+  let html='';
+  for(let i=0;i<3;i++) alerts.forEach(a=>html+=`<div class="alert-item"><span class="time">[${randTime()}]</span><span>${a}</span></div>`);
+  document.getElementById('alertScroll').innerHTML=html;
+}
+
+// ============ TOKEN GRID ============
+function initTokenGrid(){
+  const tokens=[];
+  for(let i=0;i<8;i++){
+    const name=tokenNames[i];
+    const mcap=(Math.random()*900+10).toFixed(0);
+    const insiders=Math.floor(Math.random()*40+3);
+    const score=Math.floor(Math.random()*60+40);
+    const chg=((Math.random()-0.3)*200).toFixed(1);
+    const chain=randChain();
+    const scoreColor=score>75?'var(--green)':score>50?'var(--orange)':'var(--red)';
+    tokens.push(`<div class="token-card">
+      <div class="token-top"><span class="token-name">${name}</span><span class="token-chain">${chain}</span></div>
+      <div class="token-stat"><span class="label">Market Cap</span><span>$${mcap}M</span></div>
+      <div class="token-stat"><span class="label">Insider Wallets</span><span style="color:var(--pink)">${insiders}</span></div>
+      <div class="token-stat"><span class="label">24h Change</span><span style="color:${parseFloat(chg)>=0?'var(--green)':'var(--red)'}">${chg}%</span></div>
+      <div class="token-stat"><span class="label">Risk Score</span><span style="color:${scoreColor}">${score}/100</span></div>
+      <div class="token-bar"><div class="token-bar-fill" style="width:${score}%;background:${scoreColor}"></div></div>
+    </div>`);
+  }
+  document.getElementById('tokenGrid').innerHTML=tokens.join('');
+}
+
+// ============ FLOW CHART ============
+function initFlowChart(){
+  const ctx=document.getElementById('flowChart').getContext('2d');
+  const labels=['00:00','02:00','04:00','06:00','08:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00'];
+  const genData=()=>labels.map(()=>Math.floor(Math.random()*800+100));
+  new Chart(ctx,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Insider Buys ($K)',data:genData(),borderColor:'#10b981',backgroundColor:'rgba(16,185,129,.1)',fill:true,tension:.4,pointRadius:0},
+        {label:'Insider Sells ($K)',data:genData(),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.1)',fill:true,tension:.4,pointRadius:0},
+        {label:'LP Events ($K)',data:genData().map(v=>v*0.5),borderColor:'#8b5cf6',backgroundColor:'rgba(139,92,246,.1)',fill:true,tension:.4,pointRadius:0}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#64748b',font:{size:11}}}},
+      scales:{
+        x:{grid:{color:'rgba(30,41,59,.5)'},ticks:{color:'#64748b'}},
+        y:{grid:{color:'rgba(30,41,59,.5)'},ticks:{color:'#64748b',callback:v=>'$'+v+'K'}}
+      }
+    }
+  });
+}
+
+// ============ PNL CHART ============
+function initPnlChart(){
+  const ctx=document.getElementById('pnlChart').getContext('2d');
+  const ranges=['-100%','-80%','-60%','-40%','-20%','0%','+20%','+50%','+100%','+200%','+500%','+1000%'];
+  const counts=ranges.map((_,i)=>{
+    if(i<3)return Math.floor(Math.random()*50+30);
+    if(i<6)return Math.floor(Math.random()*80+40);
+    if(i<9)return Math.floor(Math.random()*120+60);
+    return Math.floor(Math.random()*40+10);
+  });
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:ranges,
+      datasets:[{label:'Wallets',data:counts,backgroundColor:ranges.map((_,i)=>i<5?'rgba(239,68,68,.6)':i===5?'rgba(100,116,139,.6)':'rgba(16,185,129,.6)'),borderRadius:4}]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10}}},
+        y:{grid:{color:'rgba(30,41,59,.5)'},ticks:{color:'#64748b'}}
+      }
+    }
+  });
+}
+
+// ============ NETWORK GRAPH ============
+function initNetworkGraph(){
+  const canvas=document.getElementById('networkCanvas');
+  const ctx=canvas.getContext('2d');
+  const rect=canvas.parentElement.getBoundingClientRect();
+  canvas.width=rect.width;
+  canvas.height=350;
+  
+  // Generate nodes
+  const nodes=[];
+  const clusters=[{cx:canvas.width*0.25,cy:150,color:'#3b82f6'},{cx:canvas.width*0.5,cy:180,color:'#ec4899'},{cx:canvas.width*0.75,cy:140,color:'#f59e0b'}];
+  
+  clusters.forEach((c,ci)=>{
+    const count=Math.floor(Math.random()*8)+6;
+    for(let i=0;i<count;i++){
+      const angle=Math.random()*Math.PI*2;
+      const dist=Math.random()*80+20;
+      nodes.push({
+        x:c.cx+Math.cos(angle)*dist,
+        y:c.cy+Math.sin(angle)*dist,
+        r:Math.random()*8+4,
+        color:c.color,
+        cluster:ci,
+        vx:(Math.random()-0.5)*0.3,
+        vy:(Math.random()-0.5)*0.3
+      });
+    }
+  });
+  
+  // Generate edges
+  const edges=[];
+  nodes.forEach((n,i)=>{
+    nodes.forEach((m,j)=>{
+      if(i<j && n.cluster===m.cluster && Math.random()<0.4){
+        edges.push({from:i,to:j});
+      }
+      if(i<j && n.cluster!==m.cluster && Math.random()<0.05){
+        edges.push({from:i,to:j});
+      }
+    });
+  });
+  
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    
+    // Draw edges
+    edges.forEach(e=>{
+      const a=nodes[e.from],b=nodes[e.to];
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(b.x,b.y);
+      ctx.strokeStyle=a.cluster===b.cluster?a.color+'30':'#ffffff10';
+      ctx.lineWidth=a.cluster===b.cluster?1.5:0.5;
+      ctx.stroke();
+    });
+    
+    // Draw nodes
+    nodes.forEach(n=>{
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.fillStyle=n.color+'80';
+      ctx.fill();
+      ctx.strokeStyle=n.color;
+      ctx.lineWidth=1.5;
+      ctx.stroke();
+    });
+    
+    // Cluster labels
+    ctx.font='bold 11px -apple-system,sans-serif';
+    ctx.textAlign='center';
+    [{x:canvas.width*0.25,y:280,label:'Cluster A: Whale Group',color:'#3b82f6'},
+     {x:canvas.width*0.5,y:310,label:'Cluster B: Insider Ring',color:'#ec4899'},
+     {x:canvas.width*0.75,y:275,label:'Cluster C: Sniper Bots',color:'#f59e0b'}
+    ].forEach(l=>{
+      ctx.fillStyle=l.color;
+      ctx.fillText(l.label,l.x,l.y);
+    });
+    
+    // Animate
+    nodes.forEach(n=>{
+      n.x+=n.vx;
+      n.y+=n.vy;
+      const cx=clusters[n.cluster].cx;
+      const cy=clusters[n.cluster].cy;
+      n.vx+=(cx-n.x)*0.0005;
+      n.vy+=(cy-n.y)*0.0005;
+      n.vx*=0.999;
+      n.vy*=0.999;
+    });
+    
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ============ CLOCK ============
+function updateClock(){
+  document.getElementById('headerClock').textContent=new Date().toLocaleTimeString('en-US',{hour12:false});
+}
+
+// ============ LIVE UPDATES ============
+function liveUpdate(){
+  // Update a random whale row
+  const rows=document.querySelectorAll('#whaleBody tr');
+  if(rows.length>0){
+    const idx=Math.floor(Math.random()*rows.length);
+    const tag=randTag();
+    const action=actions[Math.floor(Math.random()*actions.length)];
+    const isSell=action==='SELL'||action==='REMOVE LP';
+    const pnl=Math.random()>0.35?(Math.random()*500+10).toFixed(0):-(Math.random()*80+5).toFixed(0);
+    rows[idx].innerHTML=`
+      <td><span class="wallet-addr">${randAddr()}</span></td>
+      <td><span class="whale-tag ${tag.cls}">${tag.name}</span></td>
+      <td style="color:${isSell?'var(--red)':'var(--green)'}">${action}</td>
+      <td style="color:var(--accent);font-weight:600">${randToken()}</td>
+      <td>$${randAmt()}</td>
+      <td class="${pnl>=0?'pnl-pos':'pnl-neg'}">${pnl>=0?'+':''}${pnl}%</td>
+      <td style="color:var(--muted)">just now</td>`;
+    rows[idx].style.background='rgba(249,115,22,.08)';
+    setTimeout(()=>rows[idx].style.background='',1500);
+  }
+}
+
+// ============ INIT ============
+window.addEventListener('load',()=>{
+  initMetrics();
+  initWhaleTable();
+  initAlertFeed();
+  initAlertBanner();
+  initTokenGrid();
+  initFlowChart();
+  initPnlChart();
+  initNetworkGraph();
+  updateClock();
+  setInterval(updateClock,1000);
+  setInterval(liveUpdate,3000);
+});
+</script>
+</body>
+</html>
